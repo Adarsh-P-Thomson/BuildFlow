@@ -1,14 +1,29 @@
 # Dependencies
-node_modules/
+**/node_modules/
+
+# VS Code extension packaging / test runtime
 *.vsix
+.vscode-test/
+.vscode-test-web/
 
 # Build output
-out/
-dist/
+**/out/
+**/dist/
+**/*.tsbuildinfo
 
-# IDE
-.vscode/
+# IDE (ignore local noise, keep shared workspace config)
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+!.vscode/settings.json
+buildflow/.vscode/*
+!buildflow/.vscode/launch.json
+!buildflow/.vscode/tasks.json
+!buildflow/.vscode/extensions.json
+!buildflow/.vscode/settings.json
 *.code-workspace
+.idea/
 
 # OS
 .DS_Store
@@ -19,6 +34,7 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # Editor files
 *.swp

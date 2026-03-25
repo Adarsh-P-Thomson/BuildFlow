@@ -9,15 +9,157 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onView:buildflow.sidebar",
+    "onCommand:buildflow.createProject",
+    "onCommand:buildflow.renameProject",
+    "onCommand:buildflow.deleteProject",
+    "onCommand:buildflow.addCategory",
+    "onCommand:buildflow.removeCategory",
+    "onCommand:buildflow.addTask",
+    "onCommand:buildflow.editTask",
+    "onCommand:buildflow.deleteTask",
+    "onCommand:buildflow.addGameplanStep",
+    "onCommand:buildflow.removeGameplanStep",
+    "onCommand:buildflow.toggleGameplanStepComplete",
+    "onCommand:buildflow.toggleTaskStatus",
+    "onCommand:buildflow.refresh"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "buildflow.sidebar",
+          "name": "BuildFlow"
+        }
+      ]
+    },
     "commands": [
       {
-        "command": "buildflow.helloWorld",
-        "title": "Hello World"
+        "command": "buildflow.createProject",
+        "title": "BuildFlow: Create Project"
+      },
+      {
+        "command": "buildflow.renameProject",
+        "title": "BuildFlow: Rename Project"
+      },
+      {
+        "command": "buildflow.deleteProject",
+        "title": "BuildFlow: Delete Project"
+      },
+      {
+        "command": "buildflow.addCategory",
+        "title": "BuildFlow: Add Category"
+      },
+      {
+        "command": "buildflow.removeCategory",
+        "title": "BuildFlow: Remove Category"
+      },
+      {
+        "command": "buildflow.addTask",
+        "title": "BuildFlow: Add Task"
+      },
+      {
+        "command": "buildflow.editTask",
+        "title": "BuildFlow: Edit Task"
+      },
+      {
+        "command": "buildflow.deleteTask",
+        "title": "BuildFlow: Delete Task"
+      },
+      {
+        "command": "buildflow.addGameplanStep",
+        "title": "BuildFlow: Add Gameplan Step"
+      },
+      {
+        "command": "buildflow.removeGameplanStep",
+        "title": "BuildFlow: Remove Gameplan Step"
+      },
+      {
+        "command": "buildflow.toggleGameplanStepComplete",
+        "title": "BuildFlow: Toggle Step Complete"
+      },
+      {
+        "command": "buildflow.toggleTaskStatus",
+        "title": "BuildFlow: Toggle Task Status"
+      },
+      {
+        "command": "buildflow.refresh",
+        "title": "BuildFlow: Refresh"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "buildflow.createProject",
+          "when": "view == buildflow.sidebar",
+          "group": "navigation@1"
+        },
+        {
+          "command": "buildflow.refresh",
+          "when": "view == buildflow.sidebar",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "buildflow.addCategory",
+          "when": "view == buildflow.sidebar && viewItem == project",
+          "group": "inline@1"
+        },
+        {
+          "command": "buildflow.renameProject",
+          "when": "view == buildflow.sidebar && viewItem == project",
+          "group": "inline@2"
+        },
+        {
+          "command": "buildflow.deleteProject",
+          "when": "view == buildflow.sidebar && viewItem == project",
+          "group": "inline@3"
+        },
+        {
+          "command": "buildflow.addTask",
+          "when": "view == buildflow.sidebar && viewItem == category",
+          "group": "inline@1"
+        },
+        {
+          "command": "buildflow.removeCategory",
+          "when": "view == buildflow.sidebar && viewItem == category",
+          "group": "inline@2"
+        },
+        {
+          "command": "buildflow.addGameplanStep",
+          "when": "view == buildflow.sidebar && viewItem == task",
+          "group": "inline@1"
+        },
+        {
+          "command": "buildflow.toggleTaskStatus",
+          "when": "view == buildflow.sidebar && viewItem == task",
+          "group": "inline@2"
+        },
+        {
+          "command": "buildflow.editTask",
+          "when": "view == buildflow.sidebar && viewItem == task",
+          "group": "inline@3"
+        },
+        {
+          "command": "buildflow.deleteTask",
+          "when": "view == buildflow.sidebar && viewItem == task",
+          "group": "inline@4"
+        },
+        {
+          "command": "buildflow.toggleGameplanStepComplete",
+          "when": "view == buildflow.sidebar && viewItem == step",
+          "group": "inline@1"
+        },
+        {
+          "command": "buildflow.removeGameplanStep",
+          "when": "view == buildflow.sidebar && viewItem == step",
+          "group": "inline@2"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

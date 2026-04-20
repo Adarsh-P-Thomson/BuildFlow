@@ -593,6 +593,8 @@ export function activate(context: vscode.ExtensionContext) {
 					.flatMap((project) => project.categories)
 					.flatMap((category) => category.tasks)
 					.find((candidate) => candidate.id === selectedNode.task.id);
+			} else if (selectedNode?.kind === "step") {
+				task = findStepRef(data, selectedNode.step.id)?.task;
 			} else {
 				task = await pickTask(data);
 			}
@@ -608,6 +610,42 @@ export function activate(context: vscode.ExtensionContext) {
 			};
 			task.gameplan.push(step);
 
+			await store.save(data);
+			treeProvider.refresh();
+		}
+	);
+
+	const editGameplanStepCommand = vscode.commands.registerCommand(
+		"buildflow.editGameplanStep",
+		async (item?: BuildflowTreeItem) => {
+			const data = await store.load();
+			const selectedNode = item?.node;
+			let stepRef: { task: Task; step: GameplanStep; stepIndex: number } | undefined;
+
+			if (selectedNode?.kind === "step") {
+				stepRef = findStepRef(data, selectedNode.step.id);
+			} else {
+				const step = await pickStep(data);
+				stepRef = step ? findStepRef(data, step.id) : undefined;
+			}
+
+			if (!stepRef) {
+				return;
+			}
+
+			const updatedText = await vscode.window.showInputBox({
+				title: "BuildFlow: Edit Gameplan Step",
+				prompt: "Step text",
+				value: stepRef.step.text,
+				ignoreFocusOut: true,
+				validateInput: (value) => (value.trim().length === 0 ? "Step text is required." : undefined)
+			});
+
+			if (!updatedText) {
+				return;
+			}
+
+			stepRef.step.text = updatedText.trim();
 			await store.save(data);
 			treeProvider.refresh();
 		}
@@ -700,6 +738,7 @@ export function activate(context: vscode.ExtensionContext) {
 		editTaskCommand,
 		deleteTaskCommand,
 		addGameplanStepCommand,
+		editGameplanStepCommand,
 		removeGameplanStepCommand,
 		renameProjectCommand,
 		deleteProjectCommand,

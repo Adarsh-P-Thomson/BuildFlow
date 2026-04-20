@@ -15,6 +15,7 @@
     "onCommand:buildflow.renameProject",
     "onCommand:buildflow.deleteProject",
     "onCommand:buildflow.addCategory",
+    "onCommand:buildflow.renameCategory",
     "onCommand:buildflow.removeCategory",
     "onCommand:buildflow.addTask",
     "onCommand:buildflow.editTask",
@@ -38,39 +39,53 @@
     "commands": [
       {
         "command": "buildflow.createProject",
-        "title": "BuildFlow: Create Project"
+        "title": "Add",
+        "icon": "$(add)"
       },
       {
         "command": "buildflow.renameProject",
-        "title": "BuildFlow: Rename Project"
+        "title": "BuildFlow: Rename Project",
+        "icon": "$(edit)"
       },
       {
         "command": "buildflow.deleteProject",
-        "title": "BuildFlow: Delete Project"
+        "title": "BuildFlow: Delete Project",
+        "icon": "$(trash)"
       },
       {
         "command": "buildflow.addCategory",
-        "title": "BuildFlow: Add Category"
+        "title": "BuildFlow: Add Category",
+        "icon": "$(add)"
+      },
+      {
+        "command": "buildflow.renameCategory",
+        "title": "BuildFlow: Rename Category",
+        "icon": "$(edit)"
       },
       {
         "command": "buildflow.removeCategory",
-        "title": "BuildFlow: Remove Category"
+        "title": "BuildFlow: Remove Category",
+        "icon": "$(trash)"
       },
       {
         "command": "buildflow.addTask",
-        "title": "BuildFlow: Add Task"
+        "title": "BuildFlow: Add Task",
+        "icon": "$(add)"
       },
       {
         "command": "buildflow.editTask",
-        "title": "BuildFlow: Edit Task"
+        "title": "BuildFlow: Edit Task",
+        "icon": "$(edit)"
       },
       {
         "command": "buildflow.deleteTask",
-        "title": "BuildFlow: Delete Task"
+        "title": "BuildFlow: Delete Task",
+        "icon": "$(trash)"
       },
       {
         "command": "buildflow.addGameplanStep",
-        "title": "BuildFlow: Add Gameplan Step"
+        "title": "BuildFlow: Add Gameplan Step",
+        "icon": "$(add)"
       },
       {
         "command": "buildflow.removeGameplanStep",
@@ -86,7 +101,8 @@
       },
       {
         "command": "buildflow.refresh",
-        "title": "BuildFlow: Refresh"
+        "title": "Refresh",
+        "icon": "$(refresh)"
       }
     ],
     "menus": {
@@ -124,9 +140,14 @@
           "group": "inline@1"
         },
         {
-          "command": "buildflow.removeCategory",
+          "command": "buildflow.renameCategory",
           "when": "view == buildflow.sidebar && viewItem == category",
           "group": "inline@2"
+        },
+        {
+          "command": "buildflow.removeCategory",
+          "when": "view == buildflow.sidebar && viewItem == category",
+          "group": "inline@3"
         },
         {
           "command": "buildflow.addGameplanStep",
@@ -134,29 +155,19 @@
           "group": "inline@1"
         },
         {
-          "command": "buildflow.toggleTaskStatus",
-          "when": "view == buildflow.sidebar && viewItem == task",
-          "group": "inline@2"
-        },
-        {
           "command": "buildflow.editTask",
           "when": "view == buildflow.sidebar && viewItem == task",
-          "group": "inline@3"
+          "group": "inline@2"
         },
         {
           "command": "buildflow.deleteTask",
           "when": "view == buildflow.sidebar && viewItem == task",
-          "group": "inline@4"
-        },
-        {
-          "command": "buildflow.toggleGameplanStepComplete",
-          "when": "view == buildflow.sidebar && viewItem == step",
-          "group": "inline@1"
+          "group": "inline@3"
         },
         {
           "command": "buildflow.removeGameplanStep",
           "when": "view == buildflow.sidebar && viewItem == step",
-          "group": "inline@2"
+          "group": "buildflow@1"
         }
       ]
     }

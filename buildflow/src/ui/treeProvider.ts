@@ -20,13 +20,8 @@ export class BuildflowTreeItem extends vscode.TreeItem {
 		this.node = node;
 		this.contextValue = node.kind;
 		this.iconPath = BuildflowTreeItem.iconFor(node);
-		if (node.kind === "step") {
-			this.command = {
-				command: "buildflow.toggleGameplanStepComplete",
-				title: "Toggle Step Complete",
-				arguments: [this]
-			};
-		}
+		this.checkboxState = BuildflowTreeItem.checkboxStateFor(node);
+		this.description = BuildflowTreeItem.descriptionFor(node);
 	}
 
 	private static labelFor(node: BuildflowNode): string {
@@ -38,16 +33,26 @@ export class BuildflowTreeItem extends vscode.TreeItem {
 			case "task": {
 				const completedSteps = node.task.gameplan.filter((step) => step.completed).length;
 				const totalSteps = node.task.gameplan.length;
-				const statusBadge =
-					node.task.status === "DONE" ? "DONE" : node.task.status === "IN_PROGRESS" ? "IN PROGRESS" : "TODO";
 				const progress = totalSteps > 0 ? ` [${completedSteps}/${totalSteps}]` : "";
-				return `${node.task.title} (${statusBadge})${progress}`;
+				return `${node.task.title}${progress}`;
 			}
 			case "step":
-				return `${node.step.completed ? "[x]" : "[ ]"} ${node.step.text}`;
+				return node.step.text;
 			case "info":
 				return node.message;
 		}
+	}
+
+	private static descriptionFor(node: BuildflowNode): string | undefined {
+		if (node.kind !== "task") {
+			return undefined;
+		}
+
+		if (node.task.status === "IN_PROGRESS") {
+			return "in progress";
+		}
+
+		return undefined;
 	}
 
 	private static collapsibleStateFor(node: BuildflowNode): vscode.TreeItemCollapsibleState {
@@ -69,11 +74,26 @@ export class BuildflowTreeItem extends vscode.TreeItem {
 			case "category":
 				return new vscode.ThemeIcon("folder");
 			case "task":
-				return new vscode.ThemeIcon("checklist");
+				return undefined;
 			case "step":
-				return new vscode.ThemeIcon(node.step.completed ? "pass" : "circle-outline");
+				return undefined;
 			case "info":
 				return new vscode.ThemeIcon("info");
+		}
+	}
+
+	private static checkboxStateFor(node: BuildflowNode): vscode.TreeItemCheckboxState | undefined {
+		switch (node.kind) {
+			case "task":
+				return node.task.status === "DONE"
+					? vscode.TreeItemCheckboxState.Checked
+					: vscode.TreeItemCheckboxState.Unchecked;
+			case "step":
+				return node.step.completed
+					? vscode.TreeItemCheckboxState.Checked
+					: vscode.TreeItemCheckboxState.Unchecked;
+			default:
+				return undefined;
 		}
 	}
 }

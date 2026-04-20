@@ -152,6 +152,21 @@ function nextTaskStatus(status: Task["status"]): Task["status"] {
 	return "TODO";
 }
 
+function statusFromSteps(task: Task): Task["status"] {
+	if (task.gameplan.length === 0) {
+		return task.status;
+	}
+
+	const completed = task.gameplan.filter((step) => step.completed).length;
+	if (completed === 0) {
+		return "TODO";
+	}
+	if (completed === task.gameplan.length) {
+		return "DONE";
+	}
+	return "IN_PROGRESS";
+}
+
 async function pickTaskPriority(current?: Task["priority"]): Promise<Task["priority"] | undefined> {
 	const selected = await vscode.window.showQuickPick(
 		[
@@ -191,6 +206,46 @@ export function activate(context: vscode.ExtensionContext) {
 	const treeView = vscode.window.createTreeView("buildflow.sidebar", {
 		treeDataProvider: treeProvider,
 		showCollapseAll: true
+	});
+
+	const checkboxChangeDisposable = treeView.onDidChangeCheckboxState(async (event) => {
+		const data = await store.load();
+		let changed = false;
+
+		for (const [item, checkboxState] of event.items) {
+			if (item.node.kind === "task") {
+				const taskRef = findTaskRef(data, item.node.task.id);
+				if (!taskRef) {
+					continue;
+				}
+
+				const checked = checkboxState === vscode.TreeItemCheckboxState.Checked;
+				taskRef.task.status = checked ? "DONE" : "TODO";
+				if (taskRef.task.gameplan.length > 0) {
+					for (const step of taskRef.task.gameplan) {
+						step.completed = checked;
+					}
+				}
+				changed = true;
+				continue;
+			}
+
+			if (item.node.kind === "step") {
+				const stepRef = findStepRef(data, item.node.step.id);
+				if (!stepRef) {
+					continue;
+				}
+
+				stepRef.step.completed = checkboxState === vscode.TreeItemCheckboxState.Checked;
+				stepRef.task.status = statusFromSteps(stepRef.task);
+				changed = true;
+			}
+		}
+
+		if (changed) {
+			await store.save(data);
+			treeProvider.refresh();
+		}
 	});
 
 	const refreshCommand = vscode.commands.registerCommand("buildflow.refresh", () => {
@@ -353,6 +408,42 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			categoryRef.project.categories.splice(categoryRef.categoryIndex, 1);
+			await store.save(data);
+			treeProvider.refresh();
+		}
+	);
+
+	const renameCategoryCommand = vscode.commands.registerCommand(
+		"buildflow.renameCategory",
+		async (item?: BuildflowTreeItem) => {
+			const data = await store.load();
+			const selectedNode = item?.node;
+			let categoryRef: { project: Project; category: Category; categoryIndex: number } | undefined;
+
+			if (selectedNode?.kind === "category") {
+				categoryRef = findCategoryRef(data, selectedNode.category.id);
+			} else {
+				const category = await pickCategory(data);
+				categoryRef = category ? findCategoryRef(data, category.id) : undefined;
+			}
+
+			if (!categoryRef) {
+				return;
+			}
+
+			const updatedName = await vscode.window.showInputBox({
+				title: "BuildFlow: Rename Category",
+				prompt: "Category name",
+				value: categoryRef.category.name,
+				ignoreFocusOut: true,
+				validateInput: (value) => (value.trim().length === 0 ? "Category name is required." : undefined)
+			});
+
+			if (!updatedName) {
+				return;
+			}
+
+			categoryRef.category.name = updatedName.trim();
 			await store.save(data);
 			treeProvider.refresh();
 		}
@@ -599,9 +690,11 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		treeView,
+		checkboxChangeDisposable,
 		refreshCommand,
 		createProjectCommand,
 		addCategoryCommand,
+		renameCategoryCommand,
 		removeCategoryCommand,
 		addTaskCommand,
 		editTaskCommand,

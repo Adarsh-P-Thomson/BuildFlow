@@ -3,30 +3,40 @@ name: Publish Extension
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
+
+permissions:
+  contents: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-      
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "buildflow/package-lock.json"
+
       - name: Install dependencies
         working-directory: ./buildflow
-        run: npm install
-      
+        run: npm ci
+
       - name: Build extension
         working-directory: ./buildflow
         run: npm run package
-      
+
+      - name: Create VSIX
+        working-directory: ./buildflow
+        run: npx @vscode/vsce package
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: buildflow/*.vsix
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -3,7 +3,7 @@
   "displayName": "BuildFlow",
   "description": "Developer-first project planner for VS Code with projects, categories, tasks, and gameplan checkboxes.",
   "version": "0.1.0",
-  "publisher": "adarshpthomson",
+  "publisher": "Harbinger-Codes",
   "license": "MIT",
   "icon": "images/icon.png",
   "repository": {
@@ -18,8 +18,7 @@
     "vscode": "^1.110.0"
   },
   "categories": [
-    "Other",
-    "Productivity"
+    "Other"
   ],
   "keywords": [
     "planner",

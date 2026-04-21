@@ -1,6 +1,8 @@
 # BuildFlow Repository
 
-This repository contains the BuildFlow VS Code extension project.
+BuildFlow helps developers stay on track without leaving VS Code.
+Create projects, organize by categories, break work into tasks, and complete gameplan steps with checkbox-first workflow.
+Everything is stored locally in .vscode/buildflow.json
 
 ## Extension Project
 

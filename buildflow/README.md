@@ -1,15 +1,34 @@
 # BuildFlow
 
-BuildFlow is a lightweight project planner for developers who want to manage work directly inside VS Code.
+Plan features without leaving your codebase.
 
-It keeps planning close to code with a simple hierarchy:
+BuildFlow is a local-first VS Code extension for structured project planning inside your repo.
+
+Instead of scattered TODO comments, sticky notes, or switching to external tools, BuildFlow keeps your plan where you write code.
+
+## Why BuildFlow
+
+Most developers already try one of these:
+
+- TODO comments in code
+- markdown checklists
+- Notion/Trello boards away from the editor
+
+BuildFlow gives you a better default:
+
+- Structured planning: `Project -> Category -> Task -> Step`
+- Fast inline controls: `+`, edit, delete on each row
+- Checkbox-first progress tracking for tasks and steps
+- Git-friendly local data in `.vscode/buildflow.json`
+
+## Structure
 
 - Project
 - Category
 - Task
 - Gameplan Step
 
-All data is stored locally in your workspace at `.vscode/buildflow.json`.
+All data is stored locally in your workspace.
 
 ## Features
 

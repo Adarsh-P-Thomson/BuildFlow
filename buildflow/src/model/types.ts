@@ -11,6 +11,7 @@ export interface GameplanStep {
 	id: string;
 	text: string;
 	completed: boolean;
+	attachedFileUri?: string;
 }
 
 export interface Task {
@@ -22,6 +23,7 @@ export interface Task {
 	deadline?: string;
 	notes?: string;
 	codeRef?: CodeReference;
+	attachedFileUri?: string;
 	gameplan: GameplanStep[];
 }
 

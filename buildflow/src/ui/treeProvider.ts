@@ -18,10 +18,11 @@ export class BuildflowTreeItem extends vscode.TreeItem {
 			BuildflowTreeItem.collapsibleStateFor(node)
 		);
 		this.node = node;
-		this.contextValue = node.kind;
+		this.contextValue = BuildflowTreeItem.contextValueFor(node);
 		this.iconPath = BuildflowTreeItem.iconFor(node);
 		this.checkboxState = BuildflowTreeItem.checkboxStateFor(node);
 		this.description = BuildflowTreeItem.descriptionFor(node);
+		this.tooltip = BuildflowTreeItem.tooltipFor(node);
 	}
 
 	private static labelFor(node: BuildflowNode): string {
@@ -34,24 +35,42 @@ export class BuildflowTreeItem extends vscode.TreeItem {
 				const completedSteps = node.task.gameplan.filter((step) => step.completed).length;
 				const totalSteps = node.task.gameplan.length;
 				const progress = totalSteps > 0 ? ` [${completedSteps}/${totalSteps}]` : "";
-				return `${node.task.title}${progress}`;
+				const fileBadge = node.task.attachedFileUri ? " (file)" : "";
+				return `${node.task.title}${progress}${fileBadge}`;
 			}
 			case "step":
-				return node.step.text;
+				return node.step.attachedFileUri ? `${node.step.text} (file)` : node.step.text;
 			case "info":
 				return node.message;
 		}
 	}
 
 	private static descriptionFor(node: BuildflowNode): string | undefined {
-		if (node.kind !== "task") {
-			return undefined;
+		if (node.kind === "task") {
+			const parts: string[] = [];
+			if (node.task.status === "IN_PROGRESS") {
+				parts.push("in progress");
+			}
+			if (node.task.attachedFileUri) {
+				parts.push(BuildflowTreeItem.fileNameFromUri(node.task.attachedFileUri));
+			}
+			return parts.length > 0 ? parts.join(" • ") : undefined;
 		}
 
-		if (node.task.status === "IN_PROGRESS") {
-			return "in progress";
+		if (node.kind === "step" && node.step.attachedFileUri) {
+			return BuildflowTreeItem.fileNameFromUri(node.step.attachedFileUri);
 		}
 
+		return undefined;
+	}
+
+	private static tooltipFor(node: BuildflowNode): string | undefined {
+		if (node.kind === "task" && node.task.attachedFileUri) {
+			return vscode.workspace.asRelativePath(vscode.Uri.parse(node.task.attachedFileUri), false);
+		}
+		if (node.kind === "step" && node.step.attachedFileUri) {
+			return vscode.workspace.asRelativePath(vscode.Uri.parse(node.step.attachedFileUri), false);
+		}
 		return undefined;
 	}
 
@@ -94,6 +113,26 @@ export class BuildflowTreeItem extends vscode.TreeItem {
 					: vscode.TreeItemCheckboxState.Unchecked;
 			default:
 				return undefined;
+		}
+	}
+
+	private static contextValueFor(node: BuildflowNode): string {
+		if (node.kind === "task") {
+			return node.task.attachedFileUri ? "taskAttached" : "task";
+		}
+		if (node.kind === "step") {
+			return node.step.attachedFileUri ? "stepAttached" : "step";
+		}
+		return node.kind;
+	}
+
+	private static fileNameFromUri(rawUri: string): string {
+		try {
+			const uri = vscode.Uri.parse(rawUri);
+			const segments = uri.path.split("/");
+			return segments[segments.length - 1] || rawUri;
+		} catch {
+			return rawUri;
 		}
 	}
 }

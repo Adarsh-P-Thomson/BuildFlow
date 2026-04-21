@@ -40,9 +40,15 @@
     "onCommand:buildflow.addTask",
     "onCommand:buildflow.editTask",
     "onCommand:buildflow.deleteTask",
+    "onCommand:buildflow.attachFileToTask",
+    "onCommand:buildflow.detachFileFromTask",
+    "onCommand:buildflow.openTaskAttachedFile",
     "onCommand:buildflow.addGameplanStep",
     "onCommand:buildflow.editGameplanStep",
     "onCommand:buildflow.removeGameplanStep",
+    "onCommand:buildflow.attachFileToStep",
+    "onCommand:buildflow.detachFileFromStep",
+    "onCommand:buildflow.openStepAttachedFile",
     "onCommand:buildflow.toggleGameplanStepComplete",
     "onCommand:buildflow.toggleTaskStatus",
     "onCommand:buildflow.refresh"
@@ -104,6 +110,21 @@
         "icon": "$(trash)"
       },
       {
+        "command": "buildflow.attachFileToTask",
+        "title": "BuildFlow: Attach File To Task",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "buildflow.detachFileFromTask",
+        "title": "BuildFlow: Detach File From Task",
+        "icon": "$(close)"
+      },
+      {
+        "command": "buildflow.openTaskAttachedFile",
+        "title": "BuildFlow: Open Task Attached File",
+        "icon": "$(go-to-file)"
+      },
+      {
         "command": "buildflow.addGameplanStep",
         "title": "BuildFlow: Add Gameplan Step",
         "icon": "$(add)"
@@ -117,6 +138,21 @@
         "command": "buildflow.removeGameplanStep",
         "title": "BuildFlow: Remove Gameplan Step",
         "icon": "$(trash)"
+      },
+      {
+        "command": "buildflow.attachFileToStep",
+        "title": "BuildFlow: Attach File To Step",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "buildflow.detachFileFromStep",
+        "title": "BuildFlow: Detach File From Step",
+        "icon": "$(close)"
+      },
+      {
+        "command": "buildflow.openStepAttachedFile",
+        "title": "BuildFlow: Open Step Attached File",
+        "icon": "$(go-to-file)"
       },
       {
         "command": "buildflow.toggleGameplanStepComplete",
@@ -178,28 +214,58 @@
         },
         {
           "command": "buildflow.addGameplanStep",
-          "when": "view == buildflow.sidebar && viewItem == task",
+          "when": "view == buildflow.sidebar && (viewItem == task || viewItem == taskAttached)",
           "group": "inline@1"
         },
         {
           "command": "buildflow.editTask",
-          "when": "view == buildflow.sidebar && viewItem == task",
+          "when": "view == buildflow.sidebar && (viewItem == task || viewItem == taskAttached)",
           "group": "inline@2"
         },
         {
           "command": "buildflow.deleteTask",
-          "when": "view == buildflow.sidebar && viewItem == task",
+          "when": "view == buildflow.sidebar && (viewItem == task || viewItem == taskAttached)",
           "group": "inline@3"
         },
         {
+          "command": "buildflow.attachFileToTask",
+          "when": "view == buildflow.sidebar && viewItem == task",
+          "group": "inline@4"
+        },
+        {
+          "command": "buildflow.openTaskAttachedFile",
+          "when": "view == buildflow.sidebar && viewItem == taskAttached",
+          "group": "inline@4"
+        },
+        {
+          "command": "buildflow.detachFileFromTask",
+          "when": "view == buildflow.sidebar && viewItem == taskAttached",
+          "group": "inline@5"
+        },
+        {
           "command": "buildflow.editGameplanStep",
-          "when": "view == buildflow.sidebar && viewItem == step",
+          "when": "view == buildflow.sidebar && (viewItem == step || viewItem == stepAttached)",
           "group": "inline@1"
         },
         {
           "command": "buildflow.removeGameplanStep",
-          "when": "view == buildflow.sidebar && viewItem == step",
+          "when": "view == buildflow.sidebar && (viewItem == step || viewItem == stepAttached)",
           "group": "inline@2"
+        },
+        {
+          "command": "buildflow.attachFileToStep",
+          "when": "view == buildflow.sidebar && viewItem == step",
+          "group": "inline@3"
+        },
+        {
+          "command": "buildflow.openStepAttachedFile",
+          "when": "view == buildflow.sidebar && viewItem == stepAttached",
+          "group": "inline@3"
+        },
+        {
+          "command": "buildflow.detachFileFromStep",
+          "when": "view == buildflow.sidebar && viewItem == stepAttached",
+          "group": "inline@4"
         }
       ]
     }

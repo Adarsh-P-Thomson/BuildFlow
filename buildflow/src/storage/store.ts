@@ -29,7 +29,15 @@ function isGameplanStep(value: unknown): value is GameplanStep {
 		return false;
 	}
 
-	return typeof value.id === "string" && typeof value.text === "string" && typeof value.completed === "boolean";
+	if (typeof value.id !== "string" || typeof value.text !== "string" || typeof value.completed !== "boolean") {
+		return false;
+	}
+
+	if (value.attachedFileUri !== undefined && typeof value.attachedFileUri !== "string") {
+		return false;
+	}
+
+	return true;
 }
 
 function isTask(value: unknown): value is Task {
@@ -57,6 +65,9 @@ function isTask(value: unknown): value is Task {
 		return false;
 	}
 	if (value.codeRef !== undefined && !isCodeReference(value.codeRef)) {
+		return false;
+	}
+	if (value.attachedFileUri !== undefined && typeof value.attachedFileUri !== "string") {
 		return false;
 	}
 

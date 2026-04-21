@@ -142,6 +142,73 @@ async function pickStep(data: BuildflowData): Promise<GameplanStep | undefined> 
 	return selected?.step;
 }
 
+async function pickFileUri(): Promise<vscode.Uri | undefined> {
+	const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+	if (!workspaceFolder) {
+		vscode.window.showWarningMessage("Open a workspace folder to attach files.");
+		return undefined;
+	}
+
+	const files = await vscode.workspace.findFiles(
+		"**/*",
+		"**/{node_modules,.git,.vscode-test,dist,out}/**"
+	);
+
+	if (files.length === 0) {
+		vscode.window.showWarningMessage("No files found in the current workspace.");
+		return undefined;
+	}
+
+	const activeFileUri = vscode.window.activeTextEditor?.document.uri;
+	const sortedFiles = [...files];
+	if (activeFileUri && activeFileUri.scheme === "file") {
+		const activeIndex = sortedFiles.findIndex((uri) => uri.toString() === activeFileUri.toString());
+		if (activeIndex > 0) {
+			const [active] = sortedFiles.splice(activeIndex, 1);
+			sortedFiles.unshift(active);
+		}
+	}
+
+	const selected = await vscode.window.showQuickPick(
+		sortedFiles.map((uri, index) => ({
+			label: vscode.workspace.asRelativePath(uri, false),
+			description: index === 0 && activeFileUri && uri.toString() === activeFileUri.toString() ? "current file" : "",
+			uri
+		})),
+		{
+			title: "Attach Workspace File",
+			matchOnDescription: true,
+			placeHolder: "Type to filter files from your workspace"
+		}
+	);
+
+	return selected?.uri;
+}
+
+function extractTodoLikeSteps(fileText: string): string[] {
+	const lines = fileText.split(/\r?\n/);
+	const extracted: string[] = [];
+	const unique = new Set<string>();
+	const markerPattern = /\b(?:todo|fixme|fix me)\b[:\-\s]*(.*)$/i;
+
+	for (const line of lines) {
+		const match = line.match(markerPattern);
+		if (!match) {
+			continue;
+		}
+
+		const body = match[1]?.trim();
+		const stepText = body && body.length > 0 ? body : line.trim();
+		const key = stepText.toLowerCase();
+		if (!unique.has(key)) {
+			unique.add(key);
+			extracted.push(stepText);
+		}
+	}
+
+	return extracted;
+}
+
 function nextTaskStatus(status: Task["status"]): Task["status"] {
 	if (status === "TODO") {
 		return "IN_PROGRESS";
@@ -165,6 +232,12 @@ function statusFromSteps(task: Task): Task["status"] {
 		return "DONE";
 	}
 	return "IN_PROGRESS";
+}
+
+async function openUriInEditor(rawUri: string): Promise<void> {
+	const uri = vscode.Uri.parse(rawUri);
+	const document = await vscode.workspace.openTextDocument(uri);
+	await vscode.window.showTextDocument(document, { preview: false });
 }
 
 async function pickTaskPriority(current?: Task["priority"]): Promise<Task["priority"] | undefined> {
@@ -571,6 +644,189 @@ export function activate(context: vscode.ExtensionContext) {
 		treeProvider.refresh();
 	});
 
+	const attachFileToTaskCommand = vscode.commands.registerCommand(
+		"buildflow.attachFileToTask",
+		async (item?: BuildflowTreeItem) => {
+			const data = await store.load();
+			const selectedNode = item?.node;
+			let task: Task | undefined;
+			if (selectedNode?.kind === "task") {
+				task = findTaskRef(data, selectedNode.task.id)?.task;
+			} else {
+				task = await pickTask(data);
+			}
+
+			if (!task) {
+				return;
+			}
+
+			const fileUri = await pickFileUri();
+			if (!fileUri) {
+				return;
+			}
+
+			task.attachedFileUri = fileUri.toString();
+
+			let addedStepCount = 0;
+			try {
+				const bytes = await vscode.workspace.fs.readFile(fileUri);
+				const fileText = new TextDecoder("utf-8").decode(bytes);
+				const parsedSteps = extractTodoLikeSteps(fileText);
+				const existing = new Set(task.gameplan.map((step) => step.text.toLowerCase()));
+				for (const parsedStep of parsedSteps) {
+					const key = parsedStep.toLowerCase();
+					if (existing.has(key)) {
+						continue;
+					}
+					existing.add(key);
+					task.gameplan.push({
+						id: createId("step"),
+						text: parsedStep,
+						completed: false
+					});
+					addedStepCount++;
+				}
+			} catch (error) {
+				vscode.window.showWarningMessage(
+					`Attached file, but TODO/FIXME parsing failed: ${error instanceof Error ? error.message : "Unknown error"}`
+				);
+			}
+
+			task.status = statusFromSteps(task);
+			await store.save(data);
+			treeProvider.refresh();
+
+			const relative = vscode.workspace.asRelativePath(fileUri, false);
+			vscode.window.showInformationMessage(
+				addedStepCount > 0
+					? `Attached ${relative}. Added ${addedStepCount} step(s) from TODO/FIXME.`
+					: `Attached ${relative}. No TODO/FIXME items found.`
+			);
+		}
+	);
+
+	const detachFileFromTaskCommand = vscode.commands.registerCommand(
+		"buildflow.detachFileFromTask",
+		async (item?: BuildflowTreeItem) => {
+			const data = await store.load();
+			const selectedNode = item?.node;
+			let task: Task | undefined;
+
+			if (selectedNode?.kind === "task") {
+				task = findTaskRef(data, selectedNode.task.id)?.task;
+			} else {
+				task = await pickTask(data);
+			}
+
+			if (!task || !task.attachedFileUri) {
+				return;
+			}
+
+			task.attachedFileUri = undefined;
+			await store.save(data);
+			treeProvider.refresh();
+		}
+	);
+
+	const openTaskAttachedFileCommand = vscode.commands.registerCommand(
+		"buildflow.openTaskAttachedFile",
+		async (item?: BuildflowTreeItem) => {
+			const data = await store.load();
+			const selectedNode = item?.node;
+			let task: Task | undefined;
+
+			if (selectedNode?.kind === "task") {
+				task = findTaskRef(data, selectedNode.task.id)?.task;
+			} else {
+				task = await pickTask(data);
+			}
+
+			if (!task?.attachedFileUri) {
+				vscode.window.showInformationMessage("No file attached to this task.");
+				return;
+			}
+
+			await openUriInEditor(task.attachedFileUri);
+		}
+	);
+
+	const attachFileToStepCommand = vscode.commands.registerCommand(
+		"buildflow.attachFileToStep",
+		async (item?: BuildflowTreeItem) => {
+			const data = await store.load();
+			const selectedNode = item?.node;
+			let stepRef: { task: Task; step: GameplanStep; stepIndex: number } | undefined;
+
+			if (selectedNode?.kind === "step") {
+				stepRef = findStepRef(data, selectedNode.step.id);
+			} else {
+				const step = await pickStep(data);
+				stepRef = step ? findStepRef(data, step.id) : undefined;
+			}
+
+			if (!stepRef) {
+				return;
+			}
+
+			const fileUri = await pickFileUri();
+			if (!fileUri) {
+				return;
+			}
+
+			stepRef.step.attachedFileUri = fileUri.toString();
+			await store.save(data);
+			treeProvider.refresh();
+			vscode.window.showInformationMessage(`Attached ${vscode.workspace.asRelativePath(fileUri, false)} to step.`);
+		}
+	);
+
+	const detachFileFromStepCommand = vscode.commands.registerCommand(
+		"buildflow.detachFileFromStep",
+		async (item?: BuildflowTreeItem) => {
+			const data = await store.load();
+			const selectedNode = item?.node;
+			let stepRef: { task: Task; step: GameplanStep; stepIndex: number } | undefined;
+
+			if (selectedNode?.kind === "step") {
+				stepRef = findStepRef(data, selectedNode.step.id);
+			} else {
+				const step = await pickStep(data);
+				stepRef = step ? findStepRef(data, step.id) : undefined;
+			}
+
+			if (!stepRef || !stepRef.step.attachedFileUri) {
+				return;
+			}
+
+			stepRef.step.attachedFileUri = undefined;
+			await store.save(data);
+			treeProvider.refresh();
+		}
+	);
+
+	const openStepAttachedFileCommand = vscode.commands.registerCommand(
+		"buildflow.openStepAttachedFile",
+		async (item?: BuildflowTreeItem) => {
+			const data = await store.load();
+			const selectedNode = item?.node;
+			let stepRef: { task: Task; step: GameplanStep; stepIndex: number } | undefined;
+
+			if (selectedNode?.kind === "step") {
+				stepRef = findStepRef(data, selectedNode.step.id);
+			} else {
+				const step = await pickStep(data);
+				stepRef = step ? findStepRef(data, step.id) : undefined;
+			}
+
+			if (!stepRef?.step.attachedFileUri) {
+				vscode.window.showInformationMessage("No file attached to this step.");
+				return;
+			}
+
+			await openUriInEditor(stepRef.step.attachedFileUri);
+		}
+	);
+
 	const addGameplanStepCommand = vscode.commands.registerCommand(
 		"buildflow.addGameplanStep",
 		async (item?: BuildflowTreeItem) => {
@@ -737,9 +993,15 @@ export function activate(context: vscode.ExtensionContext) {
 		addTaskCommand,
 		editTaskCommand,
 		deleteTaskCommand,
+		attachFileToTaskCommand,
+		detachFileFromTaskCommand,
+		openTaskAttachedFileCommand,
 		addGameplanStepCommand,
 		editGameplanStepCommand,
 		removeGameplanStepCommand,
+		attachFileToStepCommand,
+		detachFileFromStepCommand,
+		openStepAttachedFileCommand,
 		renameProjectCommand,
 		deleteProjectCommand,
 		toggleGameplanStepCompleteCommand,

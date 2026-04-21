@@ -19,6 +19,7 @@ BuildFlow gives you a better default:
 - Structured planning: `Project -> Category -> Task -> Step`
 - Fast inline controls: `+`, edit, delete on each row
 - Checkbox-first progress tracking for tasks and steps
+- File attachments on tasks/steps with quick open/detach actions
 - Git-friendly local data in `.vscode/buildflow.json`
 
 ## Structure
@@ -37,12 +38,21 @@ All data is stored locally in your workspace.
 - Inline row actions at every level: `+`, edit, delete
 - Quick toolbar actions: `+` (new project), refresh
 - Local JSON storage (no external account required)
+- Task file attachment can parse `TODO` / `FIXME` into gameplan steps
+- Step file attachment is supported without parsing
 
 ### Checkbox behavior
 
 - Checking a step marks it complete and updates task status automatically
 - Checking a task marks all steps complete and sets task to `DONE`
 - Unchecking a task clears all steps and sets task to `TODO`
+
+### File attachment behavior
+
+- Attach files from workspace picker (current open file is prioritized)
+- Clicking a task/step row with an attached file opens that file
+- Task attachment can auto-generate steps from `TODO` / `FIXME`
+- Step attachment is manual only (no parsing)
 
 ## Quick Start
 
@@ -67,9 +77,15 @@ You can still use Command Palette for all actions:
 - `BuildFlow: Add Task`
 - `BuildFlow: Edit Task`
 - `BuildFlow: Delete Task`
+- `BuildFlow: Attach File To Task`
+- `BuildFlow: Open Task Attached File`
+- `BuildFlow: Detach File From Task`
 - `BuildFlow: Add Gameplan Step`
 - `BuildFlow: Edit Gameplan Step`
 - `BuildFlow: Remove Gameplan Step`
+- `BuildFlow: Attach File To Step`
+- `BuildFlow: Open Step Attached File`
+- `BuildFlow: Detach File From Step`
 - `BuildFlow: Toggle Task Status`
 - `BuildFlow: Toggle Step Complete`
 - `BuildFlow: Refresh`

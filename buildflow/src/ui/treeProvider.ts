@@ -23,9 +23,10 @@ export class BuildflowTreeItem extends vscode.TreeItem {
 		this.checkboxState = BuildflowTreeItem.checkboxStateFor(node);
 		this.description = BuildflowTreeItem.descriptionFor(node);
 		this.tooltip = BuildflowTreeItem.tooltipFor(node);
+		this.command = BuildflowTreeItem.commandFor(node, this);
 	}
 
-	private static labelFor(node: BuildflowNode): string {
+	private static labelFor(node: BuildflowNode): string | vscode.TreeItemLabel {
 		switch (node.kind) {
 			case "project":
 				return node.project.name;
@@ -35,30 +36,40 @@ export class BuildflowTreeItem extends vscode.TreeItem {
 				const completedSteps = node.task.gameplan.filter((step) => step.completed).length;
 				const totalSteps = node.task.gameplan.length;
 				const progress = totalSteps > 0 ? ` [${completedSteps}/${totalSteps}]` : "";
-				const fileBadge = node.task.attachedFileUri ? " (file)" : "";
-				return `${node.task.title}${progress}${fileBadge}`;
+				if (node.task.attachedFileUri) {
+					const fileName = BuildflowTreeItem.fileNameFromUri(node.task.attachedFileUri);
+					const prefix = `${node.task.title}${progress}  `;
+					const fullLabel = `${prefix}${fileName}`;
+					return {
+						label: fullLabel,
+						highlights: [[prefix.length, fullLabel.length]]
+					};
+				}
+				return `${node.task.title}${progress}`;
 			}
 			case "step":
-				return node.step.attachedFileUri ? `${node.step.text} (file)` : node.step.text;
+				if (node.step.attachedFileUri) {
+					const fileName = BuildflowTreeItem.fileNameFromUri(node.step.attachedFileUri);
+					const prefix = `${node.step.text}  `;
+					const fullLabel = `${prefix}${fileName}`;
+					return {
+						label: fullLabel,
+						highlights: [[prefix.length, fullLabel.length]]
+					};
+				}
+				return node.step.text;
 			case "info":
 				return node.message;
 		}
 	}
 
 	private static descriptionFor(node: BuildflowNode): string | undefined {
-		if (node.kind === "task") {
-			const parts: string[] = [];
-			if (node.task.status === "IN_PROGRESS") {
-				parts.push("in progress");
-			}
-			if (node.task.attachedFileUri) {
-				parts.push(BuildflowTreeItem.fileNameFromUri(node.task.attachedFileUri));
-			}
-			return parts.length > 0 ? parts.join(" • ") : undefined;
+		if (node.kind !== "task") {
+			return undefined;
 		}
 
-		if (node.kind === "step" && node.step.attachedFileUri) {
-			return BuildflowTreeItem.fileNameFromUri(node.step.attachedFileUri);
+		if (node.task.status === "IN_PROGRESS") {
+			return "in progress";
 		}
 
 		return undefined;
@@ -66,10 +77,10 @@ export class BuildflowTreeItem extends vscode.TreeItem {
 
 	private static tooltipFor(node: BuildflowNode): string | undefined {
 		if (node.kind === "task" && node.task.attachedFileUri) {
-			return vscode.workspace.asRelativePath(vscode.Uri.parse(node.task.attachedFileUri), false);
+			return `Attached: ${vscode.workspace.asRelativePath(vscode.Uri.parse(node.task.attachedFileUri), false)}\nClick row to open`;
 		}
 		if (node.kind === "step" && node.step.attachedFileUri) {
-			return vscode.workspace.asRelativePath(vscode.Uri.parse(node.step.attachedFileUri), false);
+			return `Attached: ${vscode.workspace.asRelativePath(vscode.Uri.parse(node.step.attachedFileUri), false)}\nClick row to open`;
 		}
 		return undefined;
 	}
@@ -135,6 +146,24 @@ export class BuildflowTreeItem extends vscode.TreeItem {
 			return rawUri;
 		}
 	}
+
+	private static commandFor(node: BuildflowNode, item: BuildflowTreeItem): vscode.Command | undefined {
+		if (node.kind === "task" && node.task.attachedFileUri) {
+			return {
+				command: "buildflow.openTaskAttachedFile",
+				title: "Open Task Attached File",
+				arguments: [item]
+			};
+		}
+		if (node.kind === "step" && node.step.attachedFileUri) {
+			return {
+				command: "buildflow.openStepAttachedFile",
+				title: "Open Step Attached File",
+				arguments: [item]
+			};
+		}
+		return undefined;
+	}
 }
 
 export class BuildflowTreeProvider implements vscode.TreeDataProvider<BuildflowTreeItem> {
@@ -179,4 +208,3 @@ export class BuildflowTreeProvider implements vscode.TreeDataProvider<BuildflowT
 		return undefined;
 	}
 }
-

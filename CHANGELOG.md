@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.1.3] - 2026-04-21
+
+### Changed
+
+- Refined file-attachment UX in tree rows:
+  - attached filename stays visible inline on task/step rows
+  - clicking attached task/step row opens the linked file
+- Kept lightweight native TreeView flow (no webview migration)
+- Reverted experimental nested attachment child-row style to restore cleaner tree readability
+
+### Fixed
+
+- Removed confusing tree expansion behavior introduced during attachment UI experimentation
+
 ## [0.1.2] - 2026-04-21
 
 ### Added

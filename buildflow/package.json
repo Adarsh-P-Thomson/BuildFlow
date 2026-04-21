@@ -2,7 +2,7 @@
   "name": "buildflow",
   "displayName": "BuildFlow",
   "description": "Plan features without leaving your codebase. Local-first structured tasks inside VS Code.",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "publisher": "Harbinger-Codes",
   "license": "MIT",
   "icon": "images/icon.png",

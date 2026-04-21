@@ -17,7 +17,9 @@ Most developers already try one of these:
 BuildFlow gives you a better default:
 
 - Structured planning: `Project -> Category -> Task -> Step`
-- Fast inline controls: `+`, edit, delete on each row
+- Fast inline controls:
+  - project/category/task: `+`, edit, delete
+  - step: edit, delete
 - Checkbox-first progress tracking for tasks and steps
 - File attachments on tasks/steps with quick open/detach actions
 - Git-friendly local data in `.vscode/buildflow.json`
@@ -35,7 +37,9 @@ All data is stored locally in your workspace.
 
 - Sidebar tree for projects, categories, tasks, and steps
 - Checkbox-first workflow for tasks and gameplan steps
-- Inline row actions at every level: `+`, edit, delete
+- Inline row actions:
+  - project/category/task: `+`, edit, delete
+  - step: edit, delete
 - Quick toolbar actions: `+` (new project), refresh
 - Local JSON storage (no external account required)
 - Task file attachment can parse `TODO` / `FIXME` into gameplan steps
@@ -60,7 +64,7 @@ All data is stored locally in your workspace.
 2. Open the **BuildFlow** view in Explorer.
 3. Click the `+` in the view title to create your first project.
 4. Use inline actions on each row:
-   - `+` to add the next level
+   - `+` to add the next level (project/category/task levels)
    - edit icon to rename/edit
    - trash icon to delete
 

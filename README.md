@@ -1,30 +1,36 @@
-# BuildFlow Repository
+# BuildFlow
 
-BuildFlow helps developers stay on track without leaving VS Code.
-Create projects, organize by categories, break work into tasks, and complete gameplan steps with checkbox-first workflow.
-Everything is stored locally in .vscode/buildflow.json
+BuildFlow is a VS Code extension for structured, local-first project planning inside your code workspace.
 
-## Extension Project
+Main extension source lives in `buildflow/`.
 
-- Path: `buildflow/`
-- Marketplace package root: `buildflow/`
-- Main extension metadata: `buildflow/package.json`
+## Repository Layout
+
+- Extension package root: `buildflow/`
+- Extension manifest: `buildflow/package.json`
+- Extension README (Marketplace-facing): `buildflow/README.md`
 
 ## Quick Start (Local Dev)
 
 1. Open this repository in VS Code.
-2. Run `F5` using the root debug profile (`Run BuildFlow Extension`).
-3. In the Extension Development Host, open any workspace folder and use the BuildFlow view.
+2. Press `F5` and run `Run BuildFlow Extension`.
+3. In the Extension Development Host window, open any workspace folder and use BuildFlow in Explorer.
 
-## Publish
+## Publish Notes
 
-Extension publishing should be run from `buildflow/`:
+Run publish/package commands from `buildflow/`:
 
 ```powershell
 cd buildflow
 npx @vscode/vsce package
 # npx @vscode/vsce publish
 ```
+
+## Open Source
+
+- Contributing guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- Security policy: [SECURITY.md](SECURITY.md)
 
 ## License
 
